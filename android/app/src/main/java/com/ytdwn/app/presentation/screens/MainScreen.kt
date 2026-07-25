@@ -85,11 +85,22 @@ fun MainScreen(
         // Show error message if any
         if (uiState is MainUiState.Error) {
             val errorState = uiState as MainUiState.Error
-            androidx.compose.material3.Text(
-                text = errorState.message,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyLarge
-            )
+            Column(
+                horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth().padding(16.dp)
+            ) {
+                androidx.compose.material3.Text(
+                    text = errorState.message,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                PrimaryButton(
+                    text = "RETRY / RESET",
+                    onClick = { viewModel.resetToInitial() },
+                    enabled = true
+                )
+            }
         }
 
         // Sections 3, 4, 5, 6: Metadata, Qualities, and Download
