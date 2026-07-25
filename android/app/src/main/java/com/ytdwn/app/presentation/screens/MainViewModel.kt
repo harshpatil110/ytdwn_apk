@@ -140,6 +140,7 @@ class MainViewModel(
                     url = url,
                     videoItag = video.itag,
                     audioItag = audio.itag,
+                    title = currentState.videoTitle,
                     onProgress = { percent, status, speed, eta ->
                         _uiState.value = MainUiState.Downloading(
                             progressPercentage = percent,
@@ -150,8 +151,8 @@ class MainViewModel(
                     }
                 )
                 
-                result.onSuccess { files ->
-                    Logger.i("MainViewModel", "Download completed successfully: ${files.first.name} and ${files.second.name}")
+                result.onSuccess { finalFile ->
+                    Logger.i("MainViewModel", "Processing completed successfully: ${finalFile.absolutePath}")
                     _uiState.value = MainUiState.Completed
                 }.onFailure { error ->
                     Logger.e("MainViewModel", "Download failed: ${error.message}", error)
