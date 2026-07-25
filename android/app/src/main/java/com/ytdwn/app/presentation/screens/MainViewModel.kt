@@ -3,6 +3,8 @@ package com.ytdwn.app.presentation.screens
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ytdwn.app.domain.downloader.FetchStreamsUseCase
+import com.ytdwn.app.domain.models.AudioStream
+import com.ytdwn.app.domain.models.VideoStream
 import com.ytdwn.app.presentation.components.QualityItemUiModel
 import com.ytdwn.app.utils.Logger
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,6 +20,10 @@ class MainViewModel(
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
 
     // Hold the raw extracted models
+    private var rawVideoStreams = emptyList<VideoStream>()
+    private var rawAudioStreams = emptyList<AudioStream>()
+    
+    // UI mapping
     private var videoItems = emptyList<QualityItemUiModel>()
     private var audioItems = emptyList<QualityItemUiModel>()
 
@@ -34,8 +40,11 @@ class MainViewModel(
             val result = fetchStreamsUseCase(url)
             result.onSuccess { extraction ->
                 
+                rawVideoStreams = extraction.videoStreams
+                rawAudioStreams = extraction.audioStreams
+                
                 // Map Domain Models to UI Models
-                videoItems = extraction.videoStreams.map {
+                videoItems = rawVideoStreams.map {
                     QualityItemUiModel(
                         id = it.itag,
                         title = "${it.resolution} | ${it.format}",
@@ -75,14 +84,28 @@ class MainViewModel(
 
     fun selectVideoQuality(itag: String) {
         val currentState = _uiState.value
-        val isAudioSelected = if (currentState is MainUiState.StreamSelection) currentState.isAudioSelected else false
-        _uiState.value = MainUiState.StreamSelection(isVideoSelected = true, isAudioSelected = isAudioSelected)
+        if (currentState is MainUiState.MetadataLoaded) {
+            val selectedVideo = rawVideoStreams.find { it.itag == itag }
+            if (selectedVideo != null) {
+                Logger.d("MainViewModel", "Video stream selected: $itag")
+                _uiState.value = currentState.copy(selectedVideo = selectedVideo)
+            } else {
+                Logger.e("MainViewModel", "Invalid video itag selected: $itag")
+            }
+        }
     }
 
     fun selectAudioQuality(itag: String) {
         val currentState = _uiState.value
-        val isVideoSelected = if (currentState is MainUiState.StreamSelection) currentState.isVideoSelected else false
-        _uiState.value = MainUiState.StreamSelection(isVideoSelected = isVideoSelected, isAudioSelected = true)
+        if (currentState is MainUiState.MetadataLoaded) {
+            val selectedAudio = rawAudioStreams.find { it.itag == itag }
+            if (selectedAudio != null) {
+                Logger.d("MainViewModel", "Audio stream selected: $itag")
+                _uiState.value = currentState.copy(selectedAudio = selectedAudio)
+            } else {
+                Logger.e("MainViewModel", "Invalid audio itag selected: $itag")
+            }
+        }
     }
 
     fun getAvailableVideoItems() = videoItems
@@ -90,6 +113,8 @@ class MainViewModel(
 
     fun resetToInitial() {
         _uiState.value = MainUiState.Initial
+        rawVideoStreams = emptyList()
+        rawAudioStreams = emptyList()
         videoItems = emptyList()
         audioItems = emptyList()
     }

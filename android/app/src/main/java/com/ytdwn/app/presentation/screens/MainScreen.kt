@@ -37,8 +37,6 @@ fun MainScreen(
     val uiState by viewModel.uiState.collectAsState()
     
     var url by remember { mutableStateOf("") }
-    var selectedVideoId by remember { mutableStateOf<String?>(null) }
-    var selectedAudioId by remember { mutableStateOf<String?>(null) }
     
     val scrollState = rememberScrollState()
 
@@ -58,9 +56,6 @@ fun MainScreen(
             url = url,
             onUrlChange = { url = it },
             onEnterClick = {
-                // Reset selections when fetching new streams
-                selectedVideoId = null
-                selectedAudioId = null
                 viewModel.fetchStreams(url)
             },
             enabled = uiState !is MainUiState.Downloading
@@ -86,8 +81,8 @@ fun MainScreen(
             )
         }
 
-        // Sections 3, 4, 5: Metadata & Qualities
-        if (uiState is MainUiState.MetadataLoaded || uiState is MainUiState.StreamSelection || uiState is MainUiState.Downloading) {
+        // Sections 3, 4, 5, 6: Metadata, Qualities, and Download
+        if (uiState is MainUiState.MetadataLoaded || uiState is MainUiState.Downloading) {
             val meta = if (uiState is MainUiState.MetadataLoaded) {
                 uiState as MainUiState.MetadataLoaded
             } else {
@@ -112,9 +107,8 @@ fun MainScreen(
                 QualitySection(
                     title = "AVAILABLE VIDEO QUALITIES",
                     items = videoItems,
-                    selectedId = selectedVideoId,
+                    selectedId = meta.selectedVideo?.itag,
                     onItemSelected = { 
-                        selectedVideoId = it
                         viewModel.selectVideoQuality(it)
                     }
                 )
@@ -122,23 +116,21 @@ fun MainScreen(
                 QualitySection(
                     title = "AVAILABLE AUDIO QUALITIES",
                     items = audioItems,
-                    selectedId = selectedAudioId,
+                    selectedId = meta.selectedAudio?.itag,
                     onItemSelected = { 
-                        selectedAudioId = it 
                         viewModel.selectAudioQuality(it)
                     }
                 )
+                )
             }
-        }
 
-        // Section 6: Download Section
-        if (uiState is MainUiState.StreamSelection || uiState is MainUiState.Downloading || uiState is MainUiState.Completed) {
+            // Section 6: Download Section (shown as long as metadata is loaded or downloading)
             DownloadSection(
                 downloadPath = "/storage/emulated/0/Movies/YouTube", // Placeholder for SAF
                 onDownloadClick = {
                     // Logic to be implemented in a future task
                 },
-                enabled = uiState is MainUiState.StreamSelection
+                enabled = uiState is MainUiState.MetadataLoaded && meta.selectedVideo != null && meta.selectedAudio != null
             )
         }
 

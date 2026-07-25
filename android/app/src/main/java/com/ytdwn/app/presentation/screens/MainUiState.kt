@@ -1,5 +1,8 @@
 package com.ytdwn.app.presentation.screens
 
+import com.ytdwn.app.domain.models.AudioStream
+import com.ytdwn.app.domain.models.VideoStream
+
 /**
  * Represents the different phases of the application workflow.
  * These states will control the visibility of UI sections.
@@ -20,13 +23,9 @@ sealed interface MainUiState {
         val duration: String = "00:00",
         val uploadDate: String = "N/A",
         val viewCount: String = "0",
-        val thumbnailUrl: String? = null
-    ) : MainUiState
-
-    // Stream Selection state: Triggered when a quality card is selected. Enables Download button.
-    data class StreamSelection(
-        val isVideoSelected: Boolean = false,
-        val isAudioSelected: Boolean = false
+        val thumbnailUrl: String? = null,
+        val selectedVideo: VideoStream? = null,
+        val selectedAudio: AudioStream? = null
     ) : MainUiState
 
     // Downloading state: Progress Section is visible. URL Input and Download button disabled.
