@@ -12,8 +12,8 @@ android {
         applicationId = "com.ytdwn.app"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = project.findProperty("VERSION_CODE")?.toString()?.toInt() ?: 1
+        versionName = project.findProperty("VERSION_NAME")?.toString() ?: "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -34,13 +34,26 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            // Support passing signing config via project properties
+            storeFile = project.findProperty("RELEASE_STORE_FILE")?.let { file(it) }
+            storePassword = project.findProperty("RELEASE_STORE_PASSWORD") as String?
+            keyAlias = project.findProperty("RELEASE_KEY_ALIAS") as String?
+            keyPassword = project.findProperty("RELEASE_KEY_PASSWORD") as String?
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Use release signing config if available, fallback to debug if not set
+            signingConfig = signingConfigs.getByName("release").takeIf { it.storeFile?.exists() == true } ?: signingConfigs.getByName("debug")
         }
         debug {
             isMinifyEnabled = false
@@ -78,6 +91,9 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
+    
+    // FFmpegKit
+    implementation("com.arthenica:ffmpeg-kit-full:6.0-2")
     
     // Storage
     implementation("androidx.documentfile:documentfile:1.0.1")
