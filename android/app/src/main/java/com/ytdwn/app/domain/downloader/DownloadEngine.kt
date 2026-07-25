@@ -64,16 +64,27 @@ class DownloadEngine(private val context: Context) {
 
             // Download Video
             Logger.i("DownloadEngine", "Downloading video itag $videoItag...")
-            onProgress(0f, "Preparing video download...", "0 KB/s", "Calculating...")
-            val videoResultStr = module.callAttr(
-                "download_stream", 
-                url, videoItag, tempVideoDir.absolutePath, videoFile.name, progressCallback
-            ).toString()
+            var videoResultStr = ""
+            var videoSuccess = false
+            for (attempt in 1..3) {
+                onProgress(0f, "Preparing video download (Attempt $attempt/3)...", "0 KB/s", "Calculating...")
+                videoResultStr = module.callAttr(
+                    "download_stream", 
+                    url, videoItag, tempVideoDir.absolutePath, videoFile.name, progressCallback
+                ).toString()
+                
+                val videoResult = JSONObject(videoResultStr)
+                if (videoResult.getBoolean("success")) {
+                    videoSuccess = true
+                    break
+                }
+                Logger.w("DownloadEngine", "Video download failed on attempt $attempt")
+                kotlinx.coroutines.delay(1000)
+            }
             
-            val videoResult = JSONObject(videoResultStr)
-            if (!videoResult.getBoolean("success")) {
-                val err = videoResult.optString("error", "Unknown Video Error")
-                Logger.e("DownloadEngine", "Video download failed: $err")
+            if (!videoSuccess) {
+                val err = JSONObject(videoResultStr).optString("error", "Unknown Video Error")
+                Logger.e("DownloadEngine", "Video download failed after 3 attempts: $err")
                 return@withContext Result.failure(Exception("Video download failed: $err"))
             }
 
@@ -83,16 +94,27 @@ class DownloadEngine(private val context: Context) {
 
             // Download Audio
             Logger.i("DownloadEngine", "Downloading audio itag $audioItag...")
-            onProgress(0f, "Preparing audio download...", "0 KB/s", "Calculating...")
-            val audioResultStr = module.callAttr(
-                "download_stream", 
-                url, audioItag, tempAudioDir.absolutePath, audioFile.name, progressCallback
-            ).toString()
+            var audioResultStr = ""
+            var audioSuccess = false
+            for (attempt in 1..3) {
+                onProgress(0f, "Preparing audio download (Attempt $attempt/3)...", "0 KB/s", "Calculating...")
+                audioResultStr = module.callAttr(
+                    "download_stream", 
+                    url, audioItag, tempAudioDir.absolutePath, audioFile.name, progressCallback
+                ).toString()
+                
+                val audioResult = JSONObject(audioResultStr)
+                if (audioResult.getBoolean("success")) {
+                    audioSuccess = true
+                    break
+                }
+                Logger.w("DownloadEngine", "Audio download failed on attempt $attempt")
+                kotlinx.coroutines.delay(1000)
+            }
             
-            val audioResult = JSONObject(audioResultStr)
-            if (!audioResult.getBoolean("success")) {
-                val err = audioResult.optString("error", "Unknown Audio Error")
-                Logger.e("DownloadEngine", "Audio download failed: $err")
+            if (!audioSuccess) {
+                val err = JSONObject(audioResultStr).optString("error", "Unknown Audio Error")
+                Logger.e("DownloadEngine", "Audio download failed after 3 attempts: $err")
                 return@withContext Result.failure(Exception("Audio download failed: $err"))
             }
 
