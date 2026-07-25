@@ -110,3 +110,24 @@ def fetch_streams_json(url):
             "success": False,
             "error": str(e)
         })
+
+def download_stream(url, itag, output_path, filename, progress_callback=None):
+    try:
+        def on_progress(stream, chunk, bytes_remaining):
+            if progress_callback:
+                total_size = stream.filesize
+                bytes_downloaded = total_size - bytes_remaining
+                # Chaquopy will convert this to a Kotlin call
+                progress_callback(bytes_downloaded, total_size)
+
+        yt = YouTube(url, on_progress_callback=on_progress)
+        stream = yt.streams.get_by_itag(int(itag))
+        
+        if not stream:
+            return json.dumps({"success": False, "error": "Stream not found"})
+            
+        stream.download(output_path=output_path, filename=filename)
+        
+        return json.dumps({"success": True})
+    except Exception as e:
+        return json.dumps({"success": False, "error": str(e)})

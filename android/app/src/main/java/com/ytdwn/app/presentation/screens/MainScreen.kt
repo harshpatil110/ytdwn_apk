@@ -128,7 +128,7 @@ fun MainScreen(
             DownloadSection(
                 downloadPath = "/storage/emulated/0/Movies/YouTube", // Placeholder for SAF
                 onDownloadClick = {
-                    // Logic to be implemented in a future task
+                    viewModel.startDownload(url)
                 },
                 enabled = uiState is MainUiState.MetadataLoaded && meta.selectedVideo != null && meta.selectedAudio != null
             )
