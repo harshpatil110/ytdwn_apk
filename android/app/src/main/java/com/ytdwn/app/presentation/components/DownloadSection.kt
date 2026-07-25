@@ -2,6 +2,7 @@ package com.ytdwn.app.presentation.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,7 +25,10 @@ import androidx.compose.ui.unit.dp
 fun DownloadSection(
     downloadPath: String,
     onDownloadClick: () -> Unit,
+    onChangeLocationClick: () -> Unit,
+    onOpenFileClick: (() -> Unit)? = null,
     enabled: Boolean = true,
+    isCompleted: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -39,11 +44,20 @@ fun DownloadSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "SAVE DESTINATION",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.secondary
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "SAVE DESTINATION",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "[CHANGE]",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.clickable { onChangeLocationClick() }.padding(4.dp)
+                    )
+                }
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = downloadPath,
@@ -52,12 +66,22 @@ fun DownloadSection(
                 )
             }
             
-            PrimaryButton(
-                text = "DOWNLOAD",
-                onClick = onDownloadClick,
-                enabled = enabled,
-                modifier = Modifier.padding(start = 16.dp)
-            )
+            
+            if (isCompleted && onOpenFileClick != null) {
+                PrimaryButton(
+                    text = "OPEN FILE",
+                    onClick = onOpenFileClick,
+                    enabled = true,
+                    modifier = Modifier.padding(start = 16.dp)
+                )
+            } else {
+                PrimaryButton(
+                    text = "DOWNLOAD",
+                    onClick = onDownloadClick,
+                    enabled = enabled,
+                    modifier = Modifier.padding(start = 16.dp)
+                )
+            }
         }
     }
 }

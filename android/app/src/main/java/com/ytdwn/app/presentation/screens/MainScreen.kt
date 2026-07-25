@@ -1,5 +1,7 @@
 package com.ytdwn.app.presentation.screens
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,10 +37,19 @@ fun MainScreen(
     viewModel: MainViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val downloadLocation by viewModel.downloadLocation.collectAsState()
     
     var url by remember { mutableStateOf("") }
     
     val scrollState = rememberScrollState()
+
+    val documentTreeLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree()
+    ) { uri ->
+        if (uri != null) {
+            viewModel.setCustomLocation(uri)
+        }
+    }
 
     Column(
         modifier = modifier
@@ -82,7 +93,7 @@ fun MainScreen(
         }
 
         // Sections 3, 4, 5, 6: Metadata, Qualities, and Download
-        if (uiState is MainUiState.MetadataLoaded || uiState is MainUiState.Downloading) {
+        if (uiState is MainUiState.MetadataLoaded || uiState is MainUiState.Downloading || uiState is MainUiState.Completed) {
             val meta = if (uiState is MainUiState.MetadataLoaded) {
                 uiState as MainUiState.MetadataLoaded
             } else {
@@ -124,13 +135,21 @@ fun MainScreen(
                 )
             }
 
-            // Section 6: Download Section (shown as long as metadata is loaded or downloading)
+            // Section 6: Download Section (shown as long as metadata is loaded or downloading or completed)
+            val isCompleted = uiState is MainUiState.Completed
+            val savedUri = if (isCompleted) (uiState as MainUiState.Completed).savedUri else null
+            
             DownloadSection(
-                downloadPath = "/storage/emulated/0/Movies/YouTube", // Placeholder for SAF
+                downloadPath = downloadLocation,
                 onDownloadClick = {
                     viewModel.startDownload(url)
                 },
-                enabled = uiState is MainUiState.MetadataLoaded && meta.selectedVideo != null && meta.selectedAudio != null
+                onChangeLocationClick = {
+                    documentTreeLauncher.launch(null)
+                },
+                onOpenFileClick = if (savedUri != null) { { viewModel.openCompletedFile(savedUri) } } else null,
+                enabled = uiState is MainUiState.MetadataLoaded && meta.selectedVideo != null && meta.selectedAudio != null,
+                isCompleted = isCompleted
             )
         }
 

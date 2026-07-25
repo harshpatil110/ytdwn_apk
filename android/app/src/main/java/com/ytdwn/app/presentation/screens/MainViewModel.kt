@@ -1,12 +1,14 @@
 package com.ytdwn.app.presentation.screens
 
 import android.app.Application
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.ytdwn.app.domain.downloader.DownloadUseCase
 import com.ytdwn.app.domain.downloader.FetchStreamsUseCase
 import com.ytdwn.app.domain.models.AudioStream
 import com.ytdwn.app.domain.models.VideoStream
+import com.ytdwn.app.domain.storage.StorageManager
 import com.ytdwn.app.presentation.components.QualityItemUiModel
 import com.ytdwn.app.utils.Logger
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,9 +22,13 @@ class MainViewModel(
 
     private val fetchStreamsUseCase = FetchStreamsUseCase()
     private val downloadUseCase = DownloadUseCase(application)
+    private val storageManager = StorageManager(application)
 
     private val _uiState = MutableStateFlow<MainUiState>(MainUiState.Initial)
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
+
+    private val _downloadLocation = MutableStateFlow(storageManager.getDownloadLocationName())
+    val downloadLocation: StateFlow<String> = _downloadLocation.asStateFlow()
 
     // Hold the raw extracted models
     private var rawVideoStreams = emptyList<VideoStream>()
@@ -151,15 +157,24 @@ class MainViewModel(
                     }
                 )
                 
-                result.onSuccess { finalFile ->
-                    Logger.i("MainViewModel", "Processing completed successfully: ${finalFile.absolutePath}")
-                    _uiState.value = MainUiState.Completed
+                result.onSuccess { finalUri ->
+                    Logger.i("MainViewModel", "Processing completed successfully: $finalUri")
+                    _uiState.value = MainUiState.Completed(finalUri)
                 }.onFailure { error ->
                     Logger.e("MainViewModel", "Download failed: ${error.message}", error)
                     _uiState.value = MainUiState.Error(error.message ?: "Download failed")
                 }
             }
         }
+    }
+
+    fun setCustomLocation(uri: Uri) {
+        storageManager.setCustomLocation(uri)
+        _downloadLocation.value = storageManager.getDownloadLocationName()
+    }
+
+    fun openCompletedFile(uri: Uri) {
+        storageManager.openFile(uri)
     }
 
     fun cleanTempFiles() {

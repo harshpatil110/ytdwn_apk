@@ -37,7 +37,7 @@ sealed interface MainUiState {
     ) : MainUiState
 
     // Completed state: Shows success message.
-    data object Completed : MainUiState
+    data class Completed(val savedUri: android.net.Uri) : MainUiState
 
     // Error state: Shows error message and allows retry.
     data class Error(val message: String) : MainUiState

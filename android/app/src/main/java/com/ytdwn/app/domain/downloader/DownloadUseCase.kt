@@ -1,6 +1,8 @@
 package com.ytdwn.app.domain.downloader
 
 import android.content.Context
+import android.net.Uri
+import com.ytdwn.app.domain.storage.StorageManager
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -8,6 +10,7 @@ import kotlinx.coroutines.withContext
 class DownloadUseCase(context: Context) {
     private val engine = DownloadEngine(context)
     private val processor = MediaProcessor(context)
+    private val storageManager = StorageManager(context)
 
     suspend operator fun invoke(
         url: String,
@@ -15,7 +18,7 @@ class DownloadUseCase(context: Context) {
         audioItag: String,
         title: String,
         onProgress: (Float, String, String, String) -> Unit
-    ): Result<File> = withContext(Dispatchers.IO) {
+    ): Result<Uri> = withContext(Dispatchers.IO) {
         val downloadResult = engine.downloadMedia(url, videoItag, audioItag, onProgress)
         
         if (downloadResult.isSuccess) {
@@ -30,9 +33,19 @@ class DownloadUseCase(context: Context) {
             // Clean temp files ONLY on success, or always? 
             // "Cleanup should occur only after successful processing. If processing fails: Preserve files for debugging"
             if (processResult.isSuccess) {
-                engine.cleanTempFiles()
-                onProgress(100f, "Cleaning temporary files...", "0 KB/s", "Finalizing")
-                return@withContext processResult
+                val tempOutput = processResult.getOrThrow()
+                onProgress(100f, "Saving to destination...", "0 KB/s", "Finalizing")
+                
+                val saveResult = storageManager.saveToDestination(tempOutput, title, "mp4")
+                
+                if (saveResult.isSuccess) {
+                    tempOutput.delete() // Delete the temp output file
+                    engine.cleanTempFiles()
+                    onProgress(100f, "Completed successfully.", "0 KB/s", "Done")
+                    return@withContext saveResult
+                } else {
+                    return@withContext Result.failure(saveResult.exceptionOrNull() ?: Exception("Failed to save file"))
+                }
             } else {
                 return@withContext Result.failure(processResult.exceptionOrNull() ?: Exception("Unknown processing error"))
             }
