@@ -30,9 +30,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     // Future: Replace with NavHost
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(text = "YTDWN Android Foundation Ready", style = MaterialTheme.typography.headlineSmall)
-                    }
+                    com.ytdwn.app.presentation.screens.MainScreen(modifier = Modifier.fillMaxSize())
                 }
             }
         }
