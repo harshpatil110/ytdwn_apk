@@ -1,0 +1,81 @@
+package com.ytdwn.app.presentation.theme
+
+import android.app.Activity
+import android.os.Build
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
+
+// Using Stitch Design Tokens mapped to Material3 ColorScheme
+private val LightColorScheme = lightColorScheme(
+    primary = ColorPrimary,
+    onPrimary = ColorSurface,
+    secondary = ColorSecondary,
+    onSecondary = ColorSurface,
+    background = ColorBg,
+    onBackground = ColorText,
+    surface = ColorSurface,
+    onSurface = ColorText,
+    error = ColorError,
+    onError = ColorSurface,
+    surfaceVariant = ColorHover,
+    outline = ColorBorder,
+    tertiary = ColorAccent
+)
+
+private val DarkColorScheme = darkColorScheme(
+    primary = ColorSurface,
+    onPrimary = ColorPrimary,
+    secondary = ColorBorder,
+    onSecondary = ColorPrimary,
+    background = ColorText,
+    onBackground = ColorSurface,
+    surface = ColorPrimary,
+    onSurface = ColorSurface,
+    error = ColorError,
+    onError = ColorPrimary,
+    surfaceVariant = ColorSecondary,
+    outline = ColorSecondary,
+    tertiary = ColorAccent
+)
+
+@Composable
+fun YTDWNTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    // Dynamic color is available on Android 12+
+    dynamicColor: Boolean = false,
+    content: @Composable () -> Unit
+) {
+    val colorScheme = when {
+        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            val context = LocalContext.current
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+        darkTheme -> DarkColorScheme
+        else -> LightColorScheme
+    }
+    
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = colorScheme.background.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+        }
+    }
+
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = Typography,
+        content = content
+    )
+}
