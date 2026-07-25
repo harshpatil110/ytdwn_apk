@@ -1,5 +1,3 @@
-import com.chaquo.python.ChaquopyExtension
-
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -74,9 +72,8 @@ android {
     }
 }
 
-configure<ChaquopyExtension> {
+chaquopy {
     defaultConfig {
-        version = "3.8"
         pip {
             install("pytubefix")
         }
