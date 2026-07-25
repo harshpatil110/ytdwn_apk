@@ -177,6 +177,10 @@ class MainViewModel(
         storageManager.openFile(uri)
     }
 
+    fun openFolder() {
+        storageManager.openFolder()
+    }
+
     fun cleanTempFiles() {
         downloadUseCase.cleanTempFiles()
     }

@@ -160,4 +160,18 @@ class StorageManager(private val context: Context) {
             Logger.e("StorageManager", "Could not open file", e)
         }
     }
+
+    fun openFolder() {
+        try {
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                val uri = Uri.parse(downloadsDir.absolutePath)
+                setDataAndType(uri, "resource/folder")
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(Intent.createChooser(intent, "Open Folder"))
+        } catch (e: Exception) {
+            Logger.e("StorageManager", "Could not open folder", e)
+        }
+    }
 }

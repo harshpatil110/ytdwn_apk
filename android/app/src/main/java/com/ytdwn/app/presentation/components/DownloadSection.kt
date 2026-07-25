@@ -27,6 +27,7 @@ fun DownloadSection(
     onDownloadClick: () -> Unit,
     onChangeLocationClick: () -> Unit,
     onOpenFileClick: (() -> Unit)? = null,
+    onOpenFolderClick: (() -> Unit)? = null,
     enabled: Boolean = true,
     isCompleted: Boolean = false,
     modifier: Modifier = Modifier
@@ -67,13 +68,22 @@ fun DownloadSection(
             }
             
             
-            if (isCompleted && onOpenFileClick != null) {
-                PrimaryButton(
-                    text = "OPEN FILE",
-                    onClick = onOpenFileClick,
-                    enabled = true,
-                    modifier = Modifier.padding(start = 16.dp)
-                )
+            if (isCompleted && onOpenFileClick != null && onOpenFolderClick != null) {
+                Row(
+                    modifier = Modifier.padding(start = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    PrimaryButton(
+                        text = "OPEN FILE",
+                        onClick = onOpenFileClick,
+                        enabled = true
+                    )
+                    PrimaryButton(
+                        text = "OPEN FOLDER",
+                        onClick = onOpenFolderClick,
+                        enabled = true
+                    )
+                }
             } else {
                 PrimaryButton(
                     text = "DOWNLOAD",

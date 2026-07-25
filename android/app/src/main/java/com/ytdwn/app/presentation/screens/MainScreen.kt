@@ -148,6 +148,7 @@ fun MainScreen(
                     documentTreeLauncher.launch(null)
                 },
                 onOpenFileClick = if (savedUri != null) { { viewModel.openCompletedFile(savedUri) } } else null,
+                onOpenFolderClick = { viewModel.openFolder() },
                 enabled = uiState is MainUiState.MetadataLoaded && meta.selectedVideo != null && meta.selectedAudio != null,
                 isCompleted = isCompleted
             )
