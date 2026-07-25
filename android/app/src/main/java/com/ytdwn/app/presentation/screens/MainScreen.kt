@@ -11,12 +11,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ytdwn.app.presentation.components.DownloadSection
 import com.ytdwn.app.presentation.components.FooterSection
 import com.ytdwn.app.presentation.components.HeaderSection
@@ -28,10 +30,12 @@ import com.ytdwn.app.presentation.components.VideoInfoSection
 import com.ytdwn.app.utils.Configuration
 
 @Composable
-fun MainScreen(modifier: Modifier = Modifier) {
-    // For now, state is hoisted here as placeholders. 
-    // In the future, this will be provided by a ViewModel.
-    var uiState by remember { mutableStateOf<MainUiState>(MainUiState.Initial) }
+fun MainScreen(
+    modifier: Modifier = Modifier,
+    viewModel: MainViewModel = viewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    
     var url by remember { mutableStateOf("") }
     var selectedVideoId by remember { mutableStateOf<String?>(null) }
     var selectedAudioId by remember { mutableStateOf<String?>(null) }
@@ -54,10 +58,10 @@ fun MainScreen(modifier: Modifier = Modifier) {
             url = url,
             onUrlChange = { url = it },
             onEnterClick = {
-                // Simulate state transition for demonstration
-                uiState = MainUiState.Loading
-                // Mock transition to MetadataLoaded
-                uiState = MainUiState.MetadataLoaded()
+                // Reset selections when fetching new streams
+                selectedVideoId = null
+                selectedAudioId = null
+                viewModel.fetchStreams(url)
             },
             enabled = uiState !is MainUiState.Downloading
         )
@@ -66,9 +70,19 @@ fun MainScreen(modifier: Modifier = Modifier) {
         if (uiState is MainUiState.Loading) {
             ProgressSection(
                 progress = 0f,
-                statusText = "Fetching streams...",
+                statusText = "Fetching streams and metadata...",
                 speed = "",
                 timeRemaining = ""
+            )
+        }
+
+        // Show error message if any
+        if (uiState is MainUiState.Error) {
+            val errorState = uiState as MainUiState.Error
+            androidx.compose.material3.Text(
+                text = errorState.message,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyLarge
             )
         }
 
@@ -86,20 +100,14 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 channel = meta.channelName,
                 duration = meta.duration,
                 uploadDate = meta.uploadDate,
-                views = meta.viewCount
+                views = meta.viewCount,
+                thumbnailUrl = meta.thumbnailUrl
             )
 
             // Section 4 & 5: Qualities (Hide during download to save space)
             if (uiState !is MainUiState.Downloading) {
-                // Mock Data
-                val videoItems = listOf(
-                    QualityItemUiModel("v1", "1080p | MP4", "60 FPS | avc1 | 150 MB"),
-                    QualityItemUiModel("v2", "720p | MP4", "30 FPS | avc1 | 80 MB")
-                )
-                val audioItems = listOf(
-                    QualityItemUiModel("a1", "160kbps | WEBM", "opus | 5 MB"),
-                    QualityItemUiModel("a2", "128kbps | M4A", "mp4a | 4 MB")
-                )
+                val videoItems = viewModel.getAvailableVideoItems()
+                val audioItems = viewModel.getAvailableAudioItems()
 
                 QualitySection(
                     title = "AVAILABLE VIDEO QUALITIES",
@@ -107,7 +115,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
                     selectedId = selectedVideoId,
                     onItemSelected = { 
                         selectedVideoId = it
-                        uiState = MainUiState.StreamSelection(isVideoSelected = true, isAudioSelected = selectedAudioId != null)
+                        viewModel.selectVideoQuality(it)
                     }
                 )
 
@@ -117,7 +125,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
                     selectedId = selectedAudioId,
                     onItemSelected = { 
                         selectedAudioId = it 
-                        uiState = MainUiState.StreamSelection(isVideoSelected = selectedVideoId != null, isAudioSelected = true)
+                        viewModel.selectAudioQuality(it)
                     }
                 )
             }
@@ -128,7 +136,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
             DownloadSection(
                 downloadPath = "/storage/emulated/0/Movies/YouTube", // Placeholder for SAF
                 onDownloadClick = {
-                    uiState = MainUiState.Downloading(progressPercentage = 45f)
+                    // Logic to be implemented in a future task
                 },
                 enabled = uiState is MainUiState.StreamSelection
             )
