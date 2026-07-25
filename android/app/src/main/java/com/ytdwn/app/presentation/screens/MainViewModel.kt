@@ -1,7 +1,9 @@
 package com.ytdwn.app.presentation.screens
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.ytdwn.app.domain.downloader.DownloadUseCase
 import com.ytdwn.app.domain.downloader.FetchStreamsUseCase
 import com.ytdwn.app.domain.models.AudioStream
 import com.ytdwn.app.domain.models.VideoStream
@@ -13,8 +15,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class MainViewModel(
-    private val fetchStreamsUseCase: FetchStreamsUseCase = FetchStreamsUseCase()
-) : ViewModel() {
+    application: Application
+) : AndroidViewModel(application) {
+
+    private val fetchStreamsUseCase = FetchStreamsUseCase()
+    private val downloadUseCase = DownloadUseCase(application)
 
     private val _uiState = MutableStateFlow<MainUiState>(MainUiState.Initial)
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
@@ -110,6 +115,55 @@ class MainViewModel(
 
     fun getAvailableVideoItems() = videoItems
     fun getAvailableAudioItems() = audioItems
+
+    fun startDownload(url: String) {
+        val currentState = _uiState.value
+        if (currentState is MainUiState.MetadataLoaded) {
+            val video = currentState.selectedVideo
+            val audio = currentState.selectedAudio
+            
+            if (video == null || audio == null) {
+                Logger.e("MainViewModel", "Validation failed: video or audio stream not selected")
+                return
+            }
+            
+            Logger.i("MainViewModel", "Initiating download for video ${video.itag} and audio ${audio.itag}")
+            _uiState.value = MainUiState.Downloading(
+                progressPercentage = 0f,
+                statusText = "Preparing to download...",
+                downloadSpeed = "0 KB/s",
+                timeRemaining = "Calculating..."
+            )
+            
+            viewModelScope.launch {
+                val result = downloadUseCase(
+                    url = url,
+                    videoItag = video.itag,
+                    audioItag = audio.itag,
+                    onProgress = { percent, status, speed, eta ->
+                        _uiState.value = MainUiState.Downloading(
+                            progressPercentage = percent,
+                            statusText = status,
+                            downloadSpeed = speed,
+                            timeRemaining = eta
+                        )
+                    }
+                )
+                
+                result.onSuccess { files ->
+                    Logger.i("MainViewModel", "Download completed successfully: ${files.first.name} and ${files.second.name}")
+                    _uiState.value = MainUiState.Completed
+                }.onFailure { error ->
+                    Logger.e("MainViewModel", "Download failed: ${error.message}", error)
+                    _uiState.value = MainUiState.Error(error.message ?: "Download failed")
+                }
+            }
+        }
+    }
+
+    fun cleanTempFiles() {
+        downloadUseCase.cleanTempFiles()
+    }
 
     fun resetToInitial() {
         _uiState.value = MainUiState.Initial
