@@ -102,8 +102,8 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     
-    // FFmpegKit (Maintained Community Fork)
-    implementation("dev.ffmpegkit-maintained:ffmpeg-kit-full:8.1.7")
+    // FFmpegKit
+    implementation("com.arthenica:ffmpeg-kit-full:4.5.1-1")
     
     // Storage
     implementation("androidx.documentfile:documentfile:1.0.1")

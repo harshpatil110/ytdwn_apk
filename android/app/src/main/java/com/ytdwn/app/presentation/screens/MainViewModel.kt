@@ -76,13 +76,19 @@ class MainViewModel(
                 // Format Views
                 val viewsStr = formatViews(extraction.metadata.views)
 
+                // Default selection to first available items
+                val defaultVideo = rawVideoStreams.firstOrNull()
+                val defaultAudio = rawAudioStreams.firstOrNull()
+
                 _uiState.value = MainUiState.MetadataLoaded(
                     videoTitle = extraction.metadata.title,
                     channelName = extraction.metadata.author,
                     duration = durationStr,
                     uploadDate = extraction.metadata.publishDate,
                     viewCount = viewsStr,
-                    thumbnailUrl = extraction.metadata.thumbnailUrl
+                    thumbnailUrl = extraction.metadata.thumbnailUrl,
+                    selectedVideo = defaultVideo,
+                    selectedAudio = defaultAudio
                 )
                 Logger.i("MainViewModel", "Metadata successfully loaded and state updated.")
 

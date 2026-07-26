@@ -73,8 +73,8 @@ class StorageManager(private val context: Context) {
                 }
             }
 
-            // Default location: Environment.DIRECTORY_DOWNLOADS/YTDWN
-            val resultUri = saveToDefaultDownloads(sourceFile, fullFileName)
+            // Default location: MediaStore.Video for Videos or MediaStore.Audio for Audios
+            val resultUri = saveToMediaStore(sourceFile, fullFileName, extension)
             Result.success(resultUri)
 
         } catch (e: Exception) {
@@ -105,24 +105,53 @@ class StorageManager(private val context: Context) {
         return newFile.uri
     }
 
-    private fun saveToDefaultDownloads(sourceFile: File, filename: String): Uri {
-        val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        val appDir = File(downloadsDir, "YTDWN")
-        if (!appDir.exists()) appDir.mkdirs()
+    private fun saveToMediaStore(sourceFile: File, filename: String, extension: String): Uri {
+        val resolver = context.contentResolver
+        val mimeType = getMimeType(extension)
+        val isVideo = mimeType.startsWith("video/")
+        val isAudio = mimeType.startsWith("audio/")
 
-        val extension = filename.substringAfterLast(".", "")
-        val baseName = filename.substringBeforeLast(".")
-
-        var finalFile = File(appDir, filename)
-        var counter = 1
-
-        while (finalFile.exists()) {
-            finalFile = File(appDir, "${baseName}_$counter.$extension")
-            counter++
+        val collection = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            if (isVideo) android.provider.MediaStore.Video.Media.getContentUri(android.provider.MediaStore.VOLUME_EXTERNAL_PRIMARY)
+            else if (isAudio) android.provider.MediaStore.Audio.Media.getContentUri(android.provider.MediaStore.VOLUME_EXTERNAL_PRIMARY)
+            else android.provider.MediaStore.Downloads.getContentUri(android.provider.MediaStore.VOLUME_EXTERNAL_PRIMARY)
+        } else {
+            if (isVideo) android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+            else if (isAudio) android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+            else android.provider.MediaStore.Files.getContentUri("external")
         }
 
-        sourceFile.copyTo(finalFile, overwrite = true)
-        return Uri.fromFile(finalFile)
+        val folderName = if (isVideo) "Movies/YTDWN" else if (isAudio) "Music/YTDWN" else "Download/YTDWN"
+
+        val values = android.content.ContentValues().apply {
+            put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, filename)
+            put(android.provider.MediaStore.MediaColumns.MIME_TYPE, mimeType)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, folderName)
+                put(android.provider.MediaStore.MediaColumns.IS_PENDING, 1)
+            }
+        }
+
+        val itemUri = resolver.insert(collection, values) ?: throw Exception("Failed to insert into MediaStore")
+
+        try {
+            resolver.openOutputStream(itemUri)?.use { outputStream ->
+                java.io.FileInputStream(sourceFile).use { inputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+            } ?: throw Exception("Failed to open output stream to MediaStore URI")
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                values.clear()
+                values.put(android.provider.MediaStore.MediaColumns.IS_PENDING, 0)
+                resolver.update(itemUri, values, null, null)
+            }
+        } catch (e: Exception) {
+            resolver.delete(itemUri, null, null)
+            throw e
+        }
+
+        return itemUri
     }
 
     private fun copyFileToUri(sourceFile: File, targetUri: Uri) {
