@@ -4,6 +4,7 @@ import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -37,9 +38,9 @@ private val DarkColorScheme = darkColorScheme(
     onPrimary = ColorPrimary,
     secondary = ColorBorder,
     onSecondary = ColorPrimary,
-    background = ColorText,
+    background = Color(0xFF121212), // Material Dark Background
     onBackground = ColorSurface,
-    surface = ColorPrimary,
+    surface = Color(0xFF1E1E1E), // Slightly lighter surface
     onSurface = ColorSurface,
     error = ColorError,
     onError = ColorPrimary,
@@ -67,9 +68,11 @@ fun YTDWNTheme(
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
-            val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.background.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            val activity = view.context as? Activity
+            activity?.window?.let { window ->
+                window.statusBarColor = colorScheme.background.toArgb()
+                WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            }
         }
     }
 

@@ -39,6 +39,7 @@ fun MainScreen(
     modifier: Modifier = Modifier,
     viewModel: MainViewModel = viewModel()
 ) {
+    com.ytdwn.app.utils.Logger.i("MainScreen", "Composition started")
     val uiState by viewModel.uiState.collectAsState()
     val downloadLocation by viewModel.downloadLocation.collectAsState()
     
@@ -178,8 +179,6 @@ fun MainScreen(
                 timeRemaining = downloadState.timeRemaining
             )
         }
-
-        Spacer(modifier = Modifier.weight(1f, fill = false))
 
         // Section 8: Footer (Always visible)
         FooterSection()

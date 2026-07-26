@@ -3,6 +3,7 @@ package com.ytdwn.app
 import android.app.Application
 import com.chaquo.python.Python
 import com.chaquo.python.android.AndroidPlatform
+import com.ytdwn.app.BuildConfig
 import com.ytdwn.app.utils.Logger
 
 /**
