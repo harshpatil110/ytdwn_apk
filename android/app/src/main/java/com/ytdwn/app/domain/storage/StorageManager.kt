@@ -68,7 +68,7 @@ class StorageManager(private val context: Context) {
                         val resultUri = saveToDocumentFile(sourceFile, docFile, fullFileName, extension)
                         return@withContext Result.success(resultUri)
                     } else {
-                        Logger.w("StorageManager", "Custom location not writable. Falling back to default.")
+                        Logger.i("StorageManager", "Custom location not writable. Falling back to default.")
                     }
                 }
             }

@@ -32,7 +32,7 @@ fun ProgressSection(
             .background(MaterialTheme.colorScheme.background)
     ) {
         LinearProgressIndicator(
-            progress = { progress / 100f },
+            progress = progress / 100f,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(8.dp),

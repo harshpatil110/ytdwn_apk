@@ -78,7 +78,7 @@ class DownloadEngine(private val context: Context) {
                     videoSuccess = true
                     break
                 }
-                Logger.w("DownloadEngine", "Video download failed on attempt $attempt")
+                Logger.i("DownloadEngine", "Video download failed on attempt $attempt")
                 kotlinx.coroutines.delay(1000)
             }
             
@@ -108,7 +108,7 @@ class DownloadEngine(private val context: Context) {
                     audioSuccess = true
                     break
                 }
-                Logger.w("DownloadEngine", "Audio download failed on attempt $attempt")
+                Logger.i("DownloadEngine", "Audio download failed on attempt $attempt")
                 kotlinx.coroutines.delay(1000)
             }
             

@@ -21,7 +21,7 @@ android {
         }
         
         ndk {
-            abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
+            abiFilters += listOf("arm64-v8a", "x86_64")
         }
     }
 
@@ -74,10 +74,16 @@ android {
 
 chaquopy {
     defaultConfig {
+        version = "3.12"
+        buildPython("python")
         pip {
             install("pytubefix")
         }
     }
+}
+
+kotlin {
+    jvmToolchain(17)
 }
 
 dependencies {
