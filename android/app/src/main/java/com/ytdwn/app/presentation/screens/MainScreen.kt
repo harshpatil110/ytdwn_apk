@@ -3,7 +3,6 @@ package com.ytdwn.app.presentation.screens
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -34,14 +33,12 @@ import com.ytdwn.app.presentation.components.QualitySection
 import com.ytdwn.app.presentation.components.UrlInputSection
 import com.ytdwn.app.presentation.components.VideoInfoSection
 import com.ytdwn.app.utils.Configuration
-import com.ytdwn.app.utils.Logger
 
 @Composable
 fun MainScreen(
     modifier: Modifier = Modifier,
-    viewModel: MainViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    viewModel: MainViewModel = viewModel()
 ) {
-    Logger.d("MainScreen", "Entering RootComposable")
     val uiState by viewModel.uiState.collectAsState()
     val downloadLocation by viewModel.downloadLocation.collectAsState()
     
@@ -66,13 +63,10 @@ fun MainScreen(
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         // Section 1: Header (Always visible)
-        Logger.d("MainScreen", "Entering Header")
-        HeaderSection(modifier = Modifier.border(2.dp, androidx.compose.ui.graphics.Color.Red))
+        HeaderSection()
 
         // Section 2: URL Input (Always visible, disabled during download)
-        Logger.d("MainScreen", "Entering URLSection")
         UrlInputSection(
-            modifier = Modifier.border(2.dp, androidx.compose.ui.graphics.Color.Red),
             url = url,
             onUrlChange = { url = it },
             onEnterClick = {
@@ -84,7 +78,6 @@ fun MainScreen(
         // Show loading state placeholder
         if (uiState is MainUiState.Loading) {
             ProgressSection(
-                modifier = Modifier.border(2.dp, androidx.compose.ui.graphics.Color.Red),
                 progress = 0f,
                 statusText = "Fetching streams and metadata...",
                 speed = "",
@@ -124,7 +117,6 @@ fun MainScreen(
 
             // Section 3: Video Information
             VideoInfoSection(
-                modifier = Modifier.border(2.dp, androidx.compose.ui.graphics.Color.Red),
                 title = meta.videoTitle,
                 channel = meta.channelName,
                 duration = meta.duration,
@@ -139,7 +131,6 @@ fun MainScreen(
                 val audioItems = viewModel.getAvailableAudioItems()
 
                 QualitySection(
-                    modifier = Modifier.border(2.dp, androidx.compose.ui.graphics.Color.Red),
                     title = "AVAILABLE VIDEO QUALITIES",
                     items = videoItems,
                     selectedId = meta.selectedVideo?.itag,
@@ -149,7 +140,6 @@ fun MainScreen(
                 )
 
                 QualitySection(
-                    modifier = Modifier.border(2.dp, androidx.compose.ui.graphics.Color.Red),
                     title = "AVAILABLE AUDIO QUALITIES",
                     items = audioItems,
                     selectedId = meta.selectedAudio?.itag,
@@ -163,9 +153,7 @@ fun MainScreen(
             val isCompleted = uiState is MainUiState.Completed
             val savedUri = if (isCompleted) (uiState as MainUiState.Completed).savedUri else null
             
-            Logger.d("MainScreen", "Entering DownloadSection")
             DownloadSection(
-                modifier = Modifier.border(2.dp, androidx.compose.ui.graphics.Color.Red),
                 downloadPath = downloadLocation,
                 onDownloadClick = {
                     viewModel.startDownload(url)
@@ -184,7 +172,6 @@ fun MainScreen(
         if (uiState is MainUiState.Downloading) {
             val downloadState = uiState as MainUiState.Downloading
             ProgressSection(
-                modifier = Modifier.border(2.dp, androidx.compose.ui.graphics.Color.Red),
                 progress = downloadState.progressPercentage,
                 statusText = downloadState.statusText,
                 speed = downloadState.downloadSpeed,
@@ -193,6 +180,6 @@ fun MainScreen(
         }
 
         // Section 8: Footer (Always visible)
-        FooterSection(modifier = Modifier.border(2.dp, androidx.compose.ui.graphics.Color.Red))
+        FooterSection()
     }
 }

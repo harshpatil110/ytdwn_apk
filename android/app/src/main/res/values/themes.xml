@@ -4,10 +4,4 @@
         <item name="android:statusBarColor">@color/bg_color</item>
         <item name="android:windowLightStatusBar">true</item>
     </style>
-
-    <!-- Splash Screen Theme (Launch screen experience) -->
-    <style name="Theme.YTDWN.Splash" parent="Theme.YTDWN">
-        <item name="android:windowBackground">@color/bg_color</item>
-        <!-- In a real implementation, a splash drawable with the logo would be used here -->
-    </style>
 </resources>

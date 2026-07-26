@@ -3,16 +3,12 @@ package com.ytdwn.app
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.ytdwn.app.utils.Logger
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.height
-import androidx.compose.ui.unit.dp
 import com.ytdwn.app.presentation.screens.MainScreen
 import com.ytdwn.app.presentation.theme.YTDWNTheme
 
@@ -22,22 +18,24 @@ import com.ytdwn.app.presentation.theme.YTDWNTheme
  */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Transition from splash theme to normal theme
-        setTheme(R.style.Theme_YTDWN)
+        // Install the splash screen BEFORE super.onCreate().
+        // This is REQUIRED on Android 12+ (API 31+) to properly dismiss
+        // the system-managed splash screen window. Without this call,
+        // the splash screen overlay remains at z=30000 permanently,
+        // covering the entire Compose UI with a black layer.
+        installSplashScreen()
+        
         super.onCreate(savedInstanceState)
         
-        Logger.d("MainActivity", "Entering MainActivity")
-        Logger.i("MainActivity", "onCreate called. savedInstanceState: ${savedInstanceState != null}")
+        Logger.d("MainActivity", "onCreate called")
         
-        Logger.d("MainActivity", "Entering setContent")
         setContent {
-            com.ytdwn.app.presentation.theme.YTDWNTheme(darkTheme = false) {
-                // A surface container using the 'background' color from the theme
-                androidx.compose.material3.Surface(
+            YTDWNTheme {
+                Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = androidx.compose.material3.MaterialTheme.colorScheme.background
+                    color = MaterialTheme.colorScheme.background
                 ) {
-                    com.ytdwn.app.presentation.screens.MainScreen(modifier = Modifier.fillMaxSize())
+                    MainScreen(modifier = Modifier.fillMaxSize())
                 }
             }
         }
