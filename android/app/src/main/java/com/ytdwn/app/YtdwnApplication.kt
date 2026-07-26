@@ -19,10 +19,13 @@ class YtdwnApplication : Application() {
         Logger.init(isDebug = BuildConfig.DEBUG)
         Logger.d("YtdwnApplication", "Application Started")
         
-        // Initialize Python runtime
-        if (!Python.isStarted()) {
-            Python.start(AndroidPlatform(this))
-        }
+        // Initialize Python runtime in a background thread to prevent UI blocking on startup
+        Thread {
+            if (!Python.isStarted()) {
+                Python.start(AndroidPlatform(this))
+                Logger.d("YtdwnApplication", "Python initialized in background")
+            }
+        }.start()
         
         // Future: Initialize Dependency Injection (e.g., Hilt/Koin)
         // Future: Initialize background work managers

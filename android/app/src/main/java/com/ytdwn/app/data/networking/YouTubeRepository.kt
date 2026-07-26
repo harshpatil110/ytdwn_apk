@@ -20,6 +20,10 @@ class YouTubeRepository {
             }
 
             Logger.d("YouTubeRepository", "Fetching streams via Python bridge for: $url")
+            if (!Python.isStarted()) {
+                Logger.e("YouTubeRepository", "Python engine not started yet.")
+                return@withContext Result.failure(IllegalStateException("Engine is still starting up. Please try again in a few seconds."))
+            }
             val py = Python.getInstance()
             val module = py.getModule("extractor")
             
