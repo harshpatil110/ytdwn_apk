@@ -43,7 +43,7 @@ class YouTubeRepository {
                 lengthSeconds = vInfo.optLong("length", 0L),
                 views = vInfo.optLong("views", 0L),
                 publishDate = vInfo.optString("publish_date", "N/A"),
-                thumbnailUrl = vInfo.optString("thumbnail_url", null)
+                thumbnailUrl = vInfo.optString("thumbnail_url", "")
             )
 
             // Parse Video Streams
