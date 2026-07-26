@@ -31,7 +31,7 @@ class MainActivity : ComponentActivity() {
         
         Logger.d("MainActivity", "Entering setContent")
         setContent {
-            com.ytdwn.app.presentation.theme.YTDWNTheme {
+            com.ytdwn.app.presentation.theme.YTDWNTheme(darkTheme = false) {
                 // A surface container using the 'background' color from the theme
                 androidx.compose.material3.Surface(
                     modifier = Modifier.fillMaxSize(),
