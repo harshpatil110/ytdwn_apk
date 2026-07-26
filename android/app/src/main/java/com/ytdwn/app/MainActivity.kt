@@ -11,6 +11,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.unit.dp
 import com.ytdwn.app.presentation.screens.MainScreen
 import com.ytdwn.app.presentation.theme.YTDWNTheme
 
@@ -24,19 +26,18 @@ class MainActivity : ComponentActivity() {
         setTheme(R.style.Theme_YTDWN)
         super.onCreate(savedInstanceState)
         
+        Logger.d("MainActivity", "Entering MainActivity")
         Logger.i("MainActivity", "onCreate called. savedInstanceState: ${savedInstanceState != null}")
         
+        Logger.d("MainActivity", "Entering setContent")
         setContent {
-            Logger.i("MainActivity", "setContent composition started")
-            YTDWNTheme {
+            com.ytdwn.app.presentation.theme.YTDWNTheme {
                 // A surface container using the 'background' color from the theme
-                Surface(
+                androidx.compose.material3.Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.background
                 ) {
-                    Logger.i("MainActivity", "Surface rendering. Calling MainScreen.")
-                    // Main Screen implementation
-                    MainScreen(modifier = Modifier.fillMaxSize())
+                    com.ytdwn.app.presentation.screens.MainScreen(modifier = Modifier.fillMaxSize())
                 }
             }
         }

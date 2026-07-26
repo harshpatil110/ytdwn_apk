@@ -33,13 +33,14 @@ import com.ytdwn.app.presentation.components.QualitySection
 import com.ytdwn.app.presentation.components.UrlInputSection
 import com.ytdwn.app.presentation.components.VideoInfoSection
 import com.ytdwn.app.utils.Configuration
+import com.ytdwn.app.utils.Logger
 
 @Composable
 fun MainScreen(
     modifier: Modifier = Modifier,
-    viewModel: MainViewModel = viewModel()
+    viewModel: MainViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
-    com.ytdwn.app.utils.Logger.i("MainScreen", "Composition started")
+    Logger.d("MainScreen", "Entering RootComposable")
     val uiState by viewModel.uiState.collectAsState()
     val downloadLocation by viewModel.downloadLocation.collectAsState()
     
@@ -64,9 +65,11 @@ fun MainScreen(
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         // Section 1: Header (Always visible)
+        Logger.d("MainScreen", "Entering Header")
         HeaderSection()
 
         // Section 2: URL Input (Always visible, disabled during download)
+        Logger.d("MainScreen", "Entering URLSection")
         UrlInputSection(
             url = url,
             onUrlChange = { url = it },
@@ -154,6 +157,7 @@ fun MainScreen(
             val isCompleted = uiState is MainUiState.Completed
             val savedUri = if (isCompleted) (uiState as MainUiState.Completed).savedUri else null
             
+            Logger.d("MainScreen", "Entering DownloadSection")
             DownloadSection(
                 downloadPath = downloadLocation,
                 onDownloadClick = {
