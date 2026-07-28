@@ -102,8 +102,8 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     
-    // FFmpegKit
-    implementation("com.arthenica:ffmpeg-kit-full:4.5.1-1")
+    // FFmpegKit (16kb compatible for Android 15/16 emulators)
+    implementation("com.moizhassan.ffmpeg:ffmpeg-kit-16kb:6.1.1")
     
     // Storage
     implementation("androidx.documentfile:documentfile:1.0.1")
